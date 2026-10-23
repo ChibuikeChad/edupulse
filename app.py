@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 from db import get_db
+from risk import compute_risk
 
 app = Flask(__name__)
 app.secret_key = "change-this-later"  # signs the login cookie
@@ -133,6 +134,38 @@ def course(course_id):
     ).fetchall()
     conn.close()
     return render_template("course.html", course=c, students=students)
+
+@app.route("/enrollment/<int:enrollment_id>")
+def enrollment(enrollment_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if session["role"] != "lecturer":
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    # Only the lecturer who teaches the course may see this student's record
+    e = conn.execute(
+        """
+        SELECT e.id, u.name, u.matric_no, c.id AS course_id, c.code, c.title
+        FROM enrollments e
+        JOIN users u ON u.id = e.student_id
+        JOIN courses c ON c.id = e.course_id
+        WHERE e.id = ? AND c.lecturer_id = ?
+        """,
+        (enrollment_id, session["user_id"]),
+    ).fetchone()
+    if e is None:
+        conn.close()
+        abort(404)
+
+    rows = conn.execute(
+        "SELECT kind, label, score, max_score FROM scores WHERE enrollment_id = ? ORDER BY kind, id",
+        (enrollment_id,),
+    ).fetchall()
+    conn.close()
+
+    result = compute_risk(rows)
+    return render_template("student_detail.html", e=e, rows=rows, result=result)
 
 if __name__ == "__main__":
     app.run(debug=True)

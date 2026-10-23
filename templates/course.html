@@ -19,7 +19,7 @@
     <tbody>
       {% for s in students %}
       <tr>
-        <td>{{ s["name"] }}</td>
+        <td><a href="/enrollment/{{ s['enrollment_id'] }}" class="text-decoration-none">{{ s["name"] }}</a></td>
         <td class="text-secondary">{{ s["matric_no"] }}</td>
         <td class="text-end">{{ s["risk_score"] }}</td>
         <td class="text-end">

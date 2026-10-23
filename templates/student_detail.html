@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ e["name"] }} - EduPulse{% endblock %}
+{% block content %}
+
+<a href="/course/{{ e['course_id'] }}" class="text-decoration-none">&larr; Back to {{ e["code"] }}</a>
+<h1 class="h4 mt-2 mb-0">{{ e["name"] }}</h1>
+<p class="text-secondary">{{ e["matric_no"] }} &middot; {{ e["code"] }} - {{ e["title"] }}</p>
+
+{% if result %}
+  <div class="card card-body mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <div class="text-secondary small">Risk score</div>
+        <div class="fs-2 fw-semibold">{{ result["risk_score"] }}</div>
+      </div>
+      {% if result["level"] == "high" %}
+        <span class="badge text-bg-danger fs-6">High risk</span>
+      {% elif result["level"] == "moderate" %}
+        <span class="badge text-bg-warning fs-6">Moderate risk</span>
+      {% else %}
+        <span class="badge text-bg-success fs-6">Low risk</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <h2 class="h6 text-secondary">Score breakdown</h2>
+  <div class="card card-body mb-4">
+    {% for kind, v in result["factors"].items() %}
+      {% set cls = 'bg-danger' if v < 55 else ('bg-warning' if v < 75 else 'bg-success') %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small">
+          <span class="text-capitalize">{{ kind }}</span><span>{{ v }}%</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar {{ cls }}" style="width: {{ v }}%"></div>
+        </div>
+      </div>
+    {% endfor %}
+    <div class="small text-secondary">
+      Weakest area: <strong class="text-capitalize">{{ result["weakest"] }}</strong>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-secondary">No scores recorded yet for this student.</div>
+{% endif %}
+
+<h2 class="h6 text-secondary">All recorded scores</h2>
+<div class="card">
+  <table class="table mb-0 align-middle">
+    <thead><tr><th>Type</th><th>Item</th><th class="text-end">Score</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="text-capitalize">{{ r["kind"] }}</td>
+        <td class="text-secondary">{{ r["label"] }}</td>
+        <td class="text-end">{{ r["score"] }} / {{ r["max_score"] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
