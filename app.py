@@ -77,8 +77,9 @@ def dashboard():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    conn = get_db()
+
     if session["role"] == "lecturer":
-        conn = get_db()
         courses = conn.execute(
             """
             SELECT c.id, c.code, c.title,
@@ -102,7 +103,19 @@ def dashboard():
             total_moderate=sum(c["moderate"] for c in courses),
         )
 
-    return render_template("dashboard.html")
+    my_courses = conn.execute(
+        """
+        SELECT e.id AS enrollment_id, c.code, c.title, r.risk_score, r.level
+        FROM enrollments e
+        JOIN courses c ON c.id = e.course_id
+        LEFT JOIN risk_assessments r ON r.enrollment_id = e.id
+        WHERE e.student_id = ?
+        ORDER BY r.risk_score DESC
+        """,
+        (session["user_id"],),
+    ).fetchall()
+    conn.close()
+    return render_template("dashboard.html", my_courses=my_courses)
 
 @app.route("/course/<int:course_id>")
 def course(course_id):
@@ -166,6 +179,45 @@ def enrollment(enrollment_id):
 
     result = compute_risk(rows)
     return render_template("student_detail.html", e=e, rows=rows, result=result)
+
+TIPS = {
+    "attendance": "Attendance is pulling your score down. Aim to attend every class from now on, since missed lectures add up quickly.",
+    "assignment": "Assignments are your weakest area. Submit every outstanding one and ask your lecturer for feedback on the ones you lost marks on.",
+    "test": "Tests are your weakest area. Review past test questions and form a short study group before the next one.",
+}
+
+
+@app.route("/my-course/<int:enrollment_id>")
+def my_course(enrollment_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if session["role"] != "student":
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    # A student may only open their own enrollments
+    e = conn.execute(
+        """
+        SELECT e.id, c.code, c.title
+        FROM enrollments e
+        JOIN courses c ON c.id = e.course_id
+        WHERE e.id = ? AND e.student_id = ?
+        """,
+        (enrollment_id, session["user_id"]),
+    ).fetchone()
+    if e is None:
+        conn.close()
+        abort(404)
+
+    rows = conn.execute(
+        "SELECT kind, label, score, max_score FROM scores WHERE enrollment_id = ? ORDER BY kind, id",
+        (enrollment_id,),
+    ).fetchall()
+    conn.close()
+
+    result = compute_risk(rows)
+    tip = TIPS.get(result["weakest"]) if result else None
+    return render_template("student_course.html", e=e, result=result, tip=tip)
 
 if __name__ == "__main__":
     app.run(debug=True)

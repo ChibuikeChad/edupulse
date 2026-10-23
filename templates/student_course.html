@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ e["code"] }} - EduPulse{% endblock %}
+{% block content %}
+
+<a href="/dashboard" class="text-decoration-none">&larr; Back to my courses</a>
+<h1 class="h4 mt-2 mb-0">{{ e["code"] }}</h1>
+<p class="text-secondary">{{ e["title"] }}</p>
+
+{% if result %}
+  {% if result["level"] == "high" %}
+    <div class="alert alert-danger">
+      <strong>High risk ({{ result["risk_score"] }}).</strong> Let's turn this around. Here is what's pulling your score down.
+    </div>
+  {% elif result["level"] == "moderate" %}
+    <div class="alert alert-warning">
+      <strong>Moderate risk ({{ result["risk_score"] }}).</strong> You're not in trouble yet, but a few things need attention.
+    </div>
+  {% else %}
+    <div class="alert alert-success">
+      <strong>Low risk ({{ result["risk_score"] }}).</strong> You're on track. Keep it up.
+    </div>
+  {% endif %}
+
+  <h2 class="h6 text-secondary">Where your score comes from</h2>
+  <div class="card card-body mb-4">
+    {% for kind, v in result["factors"].items() %}
+      {% set cls = 'bg-danger' if v < 55 else ('bg-warning' if v < 75 else 'bg-success') %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small">
+          <span class="text-capitalize">{{ kind }}</span><span>{{ v }}%</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar {{ cls }}" style="width: {{ v }}%"></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if result["level"] != "low" and tip %}
+    <h2 class="h6 text-secondary">What would help most</h2>
+    <div class="card card-body">{{ tip }}</div>
+  {% endif %}
+{% else %}
+  <div class="alert alert-secondary">No scores have been recorded for this course yet.</div>
+{% endif %}
+
+{% endblock %}

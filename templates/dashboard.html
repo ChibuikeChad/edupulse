@@ -36,7 +36,30 @@
 
 {% else %}
   <h1 class="h4">Welcome, {{ session["name"] }}</h1>
-  <p class="text-secondary">Your course risk overview is coming next.</p>
+  <p class="text-secondary">{{ my_courses|length }} courses this semester</p>
+
+  {% if my_courses %}
+    {% for c in my_courses %}
+      <a href="/my-course/{{ c['enrollment_id'] }}" class="text-decoration-none text-reset">
+        <div class="card card-body mb-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">{{ c["code"] }} - {{ c["title"] }}</div>
+            {% if c["level"] == "high" %}
+              <span class="badge text-bg-danger">High risk</span>
+            {% elif c["level"] == "moderate" %}
+              <span class="badge text-bg-warning">Moderate</span>
+            {% elif c["level"] == "low" %}
+              <span class="badge text-bg-success">Low risk</span>
+            {% else %}
+              <span class="badge text-bg-secondary">No data</span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-secondary">You are not enrolled in any courses yet.</div>
+  {% endif %}
 {% endif %}
 
 {% endblock %}
