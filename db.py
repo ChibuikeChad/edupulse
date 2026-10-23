@@ -1,6 +1,7 @@
+import os
 import sqlite3
 
-DB_PATH = "edupulse.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "edupulse.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (

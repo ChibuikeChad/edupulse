@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -5,7 +6,7 @@ from db import get_db
 from risk import compute_risk, recompute_one
 
 app = Flask(__name__)
-app.secret_key = "change-this-later"  # signs the login cookie
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-key")  # signs the login cookie
 
 
 @app.route("/")
