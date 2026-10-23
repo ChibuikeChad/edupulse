@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 from db import get_db
@@ -103,6 +103,36 @@ def dashboard():
 
     return render_template("dashboard.html")
 
+@app.route("/course/<int:course_id>")
+def course(course_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if session["role"] != "lecturer":
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    # Only the lecturer who teaches this course may open it
+    c = conn.execute(
+        "SELECT * FROM courses WHERE id = ? AND lecturer_id = ?",
+        (course_id, session["user_id"]),
+    ).fetchone()
+    if c is None:
+        conn.close()
+        abort(404)
+
+    students = conn.execute(
+        """
+        SELECT e.id AS enrollment_id, u.name, u.matric_no, r.risk_score, r.level
+        FROM enrollments e
+        JOIN users u ON u.id = e.student_id
+        LEFT JOIN risk_assessments r ON r.enrollment_id = e.id
+        WHERE e.course_id = ?
+        ORDER BY r.risk_score DESC
+        """,
+        (course_id,),
+    ).fetchall()
+    conn.close()
+    return render_template("course.html", course=c, students=students)
 
 if __name__ == "__main__":
     app.run(debug=True)

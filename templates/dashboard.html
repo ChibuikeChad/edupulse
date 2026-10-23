@@ -17,19 +17,21 @@
     </div></div>
   </div>
 
-  {% for c in courses %}
-    <div class="card card-body mb-2">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <div class="fw-semibold">{{ c["code"] }} - {{ c["title"] }}</div>
-          <div class="text-secondary small">{{ c["students"] }} students</div>
-        </div>
-        <div>
-          <span class="badge text-bg-danger">{{ c["high"] }} high</span>
-          <span class="badge text-bg-warning">{{ c["moderate"] }} moderate</span>
+    {% for c in courses %}
+    <a href="/course/{{ c['id'] }}" class="text-decoration-none text-reset">
+      <div class="card card-body mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold">{{ c["code"] }} - {{ c["title"] }}</div>
+            <div class="text-secondary small">{{ c["students"] }} students</div>
+          </div>
+          <div>
+            <span class="badge text-bg-danger">{{ c["high"] }} high</span>
+            <span class="badge text-bg-warning">{{ c["moderate"] }} moderate</span>
+          </div>
         </div>
       </div>
-    </div>
+    </a>
   {% endfor %}
 
 {% else %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ course["code"] }} - EduPulse{% endblock %}
+{% block content %}
+
+<a href="/dashboard" class="text-decoration-none">&larr; Back to courses</a>
+<h1 class="h4 mt-2">{{ course["code"] }} - {{ course["title"] }}</h1>
+<p class="text-secondary">{{ students|length }} students, highest risk first</p>
+
+<div class="card">
+  <table class="table mb-0 align-middle">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Matric no.</th>
+        <th class="text-end">Risk score</th>
+        <th class="text-end">Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td>{{ s["name"] }}</td>
+        <td class="text-secondary">{{ s["matric_no"] }}</td>
+        <td class="text-end">{{ s["risk_score"] }}</td>
+        <td class="text-end">
+          {% if s["level"] == "high" %}
+            <span class="badge text-bg-danger">High</span>
+          {% elif s["level"] == "moderate" %}
+            <span class="badge text-bg-warning">Moderate</span>
+          {% elif s["level"] == "low" %}
+            <span class="badge text-bg-success">Low</span>
+          {% else %}
+            <span class="badge text-bg-secondary">No data</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
