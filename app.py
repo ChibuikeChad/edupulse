@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from werkzeug.security import check_password_hash
+import sqlite3
+from werkzeug.security import check_password_hash, generate_password_hash
 from db import get_db
 
 app = Flask(__name__)
@@ -33,6 +34,36 @@ def login():
         flash("Invalid email or password.")
     return render_template("login.html")
 
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
+        matric_no = request.form["matric_no"].strip()
+        department = request.form["department"].strip()
+
+        if len(password) < 6:
+            flash("Password must be at least 6 characters.")
+            return render_template("signup.html")
+
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO users (name, email, password_hash, role, matric_no, department) "
+                "VALUES (?,?,?,?,?,?)",
+                (name, email, generate_password_hash(password), "student", matric_no, department),
+            )
+            conn.commit()
+        except sqlite3.IntegrityError:
+            flash("That email is already registered.")
+            return render_template("signup.html")
+        finally:
+            conn.close()
+
+        flash("Account created. Please log in.")
+        return redirect(url_for("login"))
+    return render_template("signup.html")
 
 @app.route("/logout")
 def logout():
