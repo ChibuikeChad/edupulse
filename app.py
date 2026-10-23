@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 from db import get_db
-from risk import compute_risk
+from risk import compute_risk, recompute_one
 
 app = Flask(__name__)
 app.secret_key = "change-this-later"  # signs the login cookie
@@ -218,6 +218,51 @@ def my_course(enrollment_id):
     result = compute_risk(rows)
     tip = TIPS.get(result["weakest"]) if result else None
     return render_template("student_course.html", e=e, result=result, tip=tip)
+
+@app.route("/enrollment/<int:enrollment_id>/add-score", methods=["POST"])
+def add_score(enrollment_id):
+    if "user_id" not in session or session["role"] != "lecturer":
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    # Only the lecturer who teaches the course may add scores
+    owned = conn.execute(
+        """
+        SELECT e.id FROM enrollments e
+        JOIN courses c ON c.id = e.course_id
+        WHERE e.id = ? AND c.lecturer_id = ?
+        """,
+        (enrollment_id, session["user_id"]),
+    ).fetchone()
+    if owned is None:
+        conn.close()
+        abort(404)
+
+    kind = request.form["kind"]
+    label = request.form["label"].strip()
+    try:
+        score = float(request.form["score"])
+        max_score = float(request.form["max_score"])
+    except ValueError:
+        conn.close()
+        flash("Score and maximum must be numbers.")
+        return redirect(url_for("enrollment", enrollment_id=enrollment_id))
+
+    if kind not in ("attendance", "assignment", "test") or max_score <= 0 or score < 0 or score > max_score:
+        conn.close()
+        flash("Invalid score. It must be between 0 and the maximum.")
+        return redirect(url_for("enrollment", enrollment_id=enrollment_id))
+
+    conn.execute(
+        "INSERT INTO scores (enrollment_id, kind, label, score, max_score) VALUES (?,?,?,?,?)",
+        (enrollment_id, kind, label, score, max_score),
+    )
+    conn.commit()
+    conn.close()
+
+    recompute_one(enrollment_id)
+    flash("Score added and risk updated.")
+    return redirect(url_for("enrollment", enrollment_id=enrollment_id))
 
 if __name__ == "__main__":
     app.run(debug=True)

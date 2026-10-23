@@ -58,6 +58,20 @@ def recompute_all():
     conn.close()
     return count
 
+def recompute_one(enrollment_id):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT kind, score, max_score FROM scores WHERE enrollment_id = ?", (enrollment_id,)
+    ).fetchall()
+    conn.execute("DELETE FROM risk_assessments WHERE enrollment_id = ?", (enrollment_id,))
+    result = compute_risk(rows)
+    if result:
+        conn.execute(
+            "INSERT INTO risk_assessments (enrollment_id, risk_score, level) VALUES (?,?,?)",
+            (enrollment_id, result["risk_score"], result["level"]),
+        )
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     n = recompute_all()
