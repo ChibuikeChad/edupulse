@@ -75,6 +75,32 @@ def logout():
 def dashboard():
     if "user_id" not in session:
         return redirect(url_for("login"))
+
+    if session["role"] == "lecturer":
+        conn = get_db()
+        courses = conn.execute(
+            """
+            SELECT c.id, c.code, c.title,
+                   COUNT(e.id) AS students,
+                   COALESCE(SUM(CASE WHEN r.level = 'high' THEN 1 ELSE 0 END), 0) AS high,
+                   COALESCE(SUM(CASE WHEN r.level = 'moderate' THEN 1 ELSE 0 END), 0) AS moderate
+            FROM courses c
+            LEFT JOIN enrollments e ON e.course_id = c.id
+            LEFT JOIN risk_assessments r ON r.enrollment_id = e.id
+            WHERE c.lecturer_id = ?
+            GROUP BY c.id
+            """,
+            (session["user_id"],),
+        ).fetchall()
+        conn.close()
+        return render_template(
+            "dashboard.html",
+            courses=courses,
+            total_students=sum(c["students"] for c in courses),
+            total_high=sum(c["high"] for c in courses),
+            total_moderate=sum(c["moderate"] for c in courses),
+        )
+
     return render_template("dashboard.html")
 
 
