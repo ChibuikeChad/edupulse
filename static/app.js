@@ -21,3 +21,33 @@
   };
   paint();
 })();
+
+(function () {
+  var list = document.getElementById("student-list");
+  if (!list) return;
+  var q = document.getElementById("student-search");
+  var chips = document.querySelectorAll(".chip");
+  var none = document.getElementById("no-match");
+  var level = "all";
+
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    var shown = 0;
+    list.querySelectorAll(".srow").forEach(function (row) {
+      var ok = (level === "all" || row.dataset.level === level) &&
+               row.dataset.name.indexOf(term) > -1;
+      row.style.display = ok ? "" : "none";
+      if (ok) shown++;
+    });
+    none.classList.toggle("d-none", shown > 0);
+  }
+
+  q.addEventListener("input", apply);
+  chips.forEach(function (c) {
+    c.addEventListener("click", function () {
+      level = c.dataset.level;
+      chips.forEach(function (x) { x.classList.toggle("on", x === c); });
+      apply();
+    });
+  });
+})();
