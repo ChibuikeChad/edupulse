@@ -63,7 +63,7 @@ def signup():
         finally:
             conn.close()
 
-        flash("Account created. Please log in.")
+        flash("Account created. Please log in.", "success")
         return redirect(url_for("login"))
     return render_template("signup.html")
 

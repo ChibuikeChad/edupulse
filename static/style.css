@@ -118,3 +118,22 @@ a:hover .card { transform: translateY(-2px); border-color: var(--ac); }
   .l-steps, .l-feat { grid-template-columns: 1fr; }
   .l-hero h1 { font-size: 26px; }
 }
+
+/* Auth pages */
+.a-wrap { max-width: 440px; margin: 0 auto; padding: 16px; }
+.a-top { display: flex; justify-content: space-between; align-items: center; margin: 6px 0 18px; }
+.a-top a.l-brand { color: var(--tx); text-decoration: none; }
+.a-hero {
+  background: linear-gradient(135deg, #5B3FE0 0%, #8B5CF6 50%, #19B8D9 100%);
+  color: #fff; border-radius: 20px; padding: 24px 20px; margin-bottom: 16px;
+  position: relative; overflow: hidden;
+}
+.a-hero::before { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,.14); }
+.a-hero h1 { font-size: 24px; margin: 0 0 6px; position: relative; }
+.a-hero p { margin: 0; opacity: .92; font-size: 14px; position: relative; }
+.a-card { background: var(--surface); border: 1px solid var(--bd); border-radius: 16px; padding: 18px; }
+.a-card .form-control { height: 44px; border-radius: 10px; background: var(--surface); border-color: var(--bd); color: var(--tx); }
+.a-card .form-control:focus { border-color: var(--ac); box-shadow: 0 0 0 3px rgba(91, 63, 224, .18); }
+.a-card .form-label { font-size: 13px; color: var(--t2); }
+.a-card .btn-success { height: 46px; width: 100%; font-size: 15px; }
+.a-alt { text-align: center; font-size: 13px; color: var(--t2); margin-top: 14px; }
