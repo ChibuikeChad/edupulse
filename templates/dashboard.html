@@ -61,28 +61,45 @@
   {% endfor %}
 
 {% else %}
-  <h1 class="h4">Welcome, {{ session["name"] }}</h1>
+  {% set scored = my_courses|rejectattr('level', 'none')|list %}
+  {% set attn = scored|rejectattr('level', 'equalto', 'low')|list|length %}
+  {% set lowest = (scored|map(attribute='risk_score')|min) if scored else '-' %}
+
+  <h1 class="h4 mb-0">Welcome back, {{ session["name"] }}</h1>
   <p class="text-secondary">{{ my_courses|length }} courses this semester</p>
 
   {% if my_courses %}
+    <div class="stat-grid">
+      <div class="stat"><p>Courses</p><b>{{ my_courses|length }}</b></div>
+      <div class="stat stat-danger"><p>Need attention</p><b>{{ attn }}</b></div>
+      <div class="stat"><p>Lowest risk</p><b>{{ lowest }}</b></div>
+    </div>
+
+    <div class="sec-label">Your courses</div>
     {% for c in my_courses %}
-      <a href="/my-course/{{ c['enrollment_id'] }}" class="text-decoration-none text-reset">
-        <div class="card card-body mb-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="fw-semibold">{{ c["code"] }} - {{ c["title"] }}</div>
-            {% if c["level"] == "high" %}
-              <span class="badge text-bg-danger">High risk</span>
-            {% elif c["level"] == "moderate" %}
-              <span class="badge text-bg-warning">Moderate</span>
-            {% elif c["level"] == "low" %}
-              <span class="badge text-bg-success">Low risk</span>
-            {% else %}
-              <span class="badge text-bg-secondary">No data</span>
-            {% endif %}
+      {% set lv = c['level'] %}
+      <a class="srow" href="/my-course/{{ c['enrollment_id'] }}">
+        <div class="grow">
+          <div class="nm">
+            <span>{{ c['code'] }}</span>
+            <span>{{ c['risk_score'] if c['risk_score'] is not none else '-' }}</span>
           </div>
+          <div class="sub">{{ c['title'] }}</div>
+          <div class="meter"><i class="m-{{ lv or 'none' }}" style="width: {{ c['risk_score'] or 0 }}%"></i></div>
         </div>
+        {% if lv == 'high' %}<span class="badge text-bg-danger">High risk</span>
+        {% elif lv == 'moderate' %}<span class="badge text-bg-warning">Moderate</span>
+        {% elif lv == 'low' %}<span class="badge text-bg-success">Low risk</span>
+        {% else %}<span class="badge text-bg-secondary">No data</span>{% endif %}
       </a>
     {% endfor %}
+
+    {% if scored and scored[0]['level'] != 'low' %}
+      <div class="tip-card mt-3">
+        <span>&#128161;</span>
+        <span>{{ scored[0]['code'] }} needs attention. Open it to see what is driving the score and what would help most.</span>
+      </div>
+    {% endif %}
   {% else %}
     <div class="alert alert-secondary">You are not enrolled in any courses yet.</div>
   {% endif %}

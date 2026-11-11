@@ -51,3 +51,16 @@
     });
   });
 })();
+
+(function () {
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      document.querySelectorAll(".track i[data-w]").forEach(function (e) {
+        e.style.width = e.dataset.w + "%";
+      });
+      document.querySelectorAll(".arc[data-len]").forEach(function (a) {
+        a.setAttribute("stroke-dasharray", a.dataset.len + " 125.66");
+      });
+    });
+  });
+})();
