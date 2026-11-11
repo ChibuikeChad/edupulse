@@ -13,7 +13,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-only-key")  # signs the login
 def home():
     if "user_id" in session:
         return redirect(url_for("dashboard"))
-    return redirect(url_for("login"))
+    return render_template("landing.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
