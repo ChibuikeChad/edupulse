@@ -3,33 +3,59 @@
 {% block content %}
 
 {% if session["role"] == "lecturer" %}
-  <h1 class="h4">Your courses</h1>
-  <p class="text-secondary">{{ courses|length }} courses, {{ total_students }} enrollments</p>
+  {% set n = total_high + total_moderate + total_low %}
+  {% set C = 226.2 %}
+  {% set lh = (total_high / n * C) if n else 0 %}
+  {% set lm = (total_moderate / n * C) if n else 0 %}
+  {% set ll = (total_low / n * C) if n else 0 %}
 
-  <div class="row g-3 mb-4">
-    <div class="col-6"><div class="card card-body">
-      <div class="text-secondary small">High risk</div>
-      <div class="fs-3 fw-semibold text-danger">{{ total_high }}</div>
-    </div></div>
-    <div class="col-6"><div class="card card-body">
-      <div class="text-secondary small">Moderate risk</div>
-      <div class="fs-3 fw-semibold text-warning">{{ total_moderate }}</div>
-    </div></div>
+  <h1 class="h4 mb-0">Welcome back, {{ session["name"] }}</h1>
+  <p class="text-secondary">Here is how your students are doing right now.</p>
+
+  <div class="stat-grid">
+    <div class="stat"><p>Courses</p><b>{{ courses|length }}</b></div>
+    <div class="stat stat-danger"><p>Need attention</p><b>{{ total_high }}</b></div>
+    <div class="stat"><p>Enrollments</p><b>{{ total_students }}</b></div>
   </div>
 
-    {% for c in courses %}
-    <a href="/course/{{ c['id'] }}" class="text-decoration-none text-reset">
-      <div class="card card-body mb-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-semibold">{{ c["code"] }} - {{ c["title"] }}</div>
-            <div class="text-secondary small">{{ c["students"] }} students</div>
-          </div>
-          <div>
-            <span class="badge text-bg-danger">{{ c["high"] }} high</span>
-            <span class="badge text-bg-warning">{{ c["moderate"] }} moderate</span>
-          </div>
+  <div class="d-card">
+    <svg width="104" height="104" viewBox="0 0 100 100" role="img" aria-label="Risk across all courses">
+      <circle cx="50" cy="50" r="36" fill="none" stroke="var(--bd)" stroke-width="14"/>
+      {% if n %}
+      <circle cx="50" cy="50" r="36" fill="none" stroke="var(--c-high)" stroke-width="14"
+              stroke-dasharray="{{ lh }} {{ C - lh }}" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+      <circle cx="50" cy="50" r="36" fill="none" stroke="var(--c-mod)" stroke-width="14"
+              stroke-dasharray="{{ lm }} {{ C - lm }}" stroke-dashoffset="{{ -lh }}" transform="rotate(-90 50 50)"/>
+      <circle cx="50" cy="50" r="36" fill="none" stroke="var(--c-low)" stroke-width="14"
+              stroke-dasharray="{{ ll }} {{ C - ll }}" stroke-dashoffset="{{ -(lh + lm) }}" transform="rotate(-90 50 50)"/>
+      {% endif %}
+    </svg>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--c-high)"></i>High <b>{{ total_high }}</b></span>
+      <span><i class="dot" style="background:var(--c-mod)"></i>Moderate <b>{{ total_moderate }}</b></span>
+      <span><i class="dot" style="background:var(--c-low)"></i>Low <b>{{ total_low }}</b></span>
+    </div>
+  </div>
+
+  <div class="sec-label">Your courses</div>
+  {% for c in courses %}
+    {% set t = c["students"] or 1 %}
+    <a href="/course/{{ c['id'] }}" class="c-card">
+      <div class="c-top">
+        <div>
+          <div class="c-code">{{ c["code"] }}</div>
+          <div class="sub">{{ c["title"] }} &middot; {{ c["students"] }} students</div>
         </div>
+        <div>
+          {% if c["high"] %}<span class="badge text-bg-danger">{{ c["high"] }} high</span>{% endif %}
+          {% if c["moderate"] %}<span class="badge text-bg-warning">{{ c["moderate"] }} moderate</span>{% endif %}
+          {% if not c["high"] and not c["moderate"] %}<span class="badge text-bg-success">All on track</span>{% endif %}
+        </div>
+      </div>
+      <div class="stack">
+        <i class="m-high" style="width: {{ (c['high'] / t * 100)|round(1) }}%"></i>
+        <i class="m-moderate" style="width: {{ (c['moderate'] / t * 100)|round(1) }}%"></i>
+        <i class="m-low" style="width: {{ (c['low'] / t * 100)|round(1) }}%"></i>
       </div>
     </a>
   {% endfor %}

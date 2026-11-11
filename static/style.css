@@ -165,3 +165,12 @@ a:hover .card { transform: translateY(-2px); border-color: var(--ac); }
 .meter { height: 5px; background: var(--bd); border-radius: 4px; margin-top: 6px; overflow: hidden; }
 .meter i { display: block; height: 100%; border-radius: 4px; }
 .m-high { background: var(--c-high); } .m-moderate { background: var(--c-mod); } .m-low { background: var(--c-low); } .m-none { background: transparent; }
+
+/* Lecturer dashboard */
+.c-card { display: block; background: var(--surface); border: 1px solid var(--bd); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; text-decoration: none; color: var(--tx); transition: transform .15s, border-color .15s; }
+.c-card:hover { transform: translateY(-2px); border-color: var(--ac); color: var(--tx); }
+.c-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.c-code { font-weight: 700; font-size: 16px; }
+.stack { display: flex; height: 6px; border-radius: 4px; overflow: hidden; background: var(--bd); margin-top: 10px; }
+.stack i { display: block; height: 100%; }
+.sec-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--ac); text-transform: uppercase; margin: 22px 0 10px; }
